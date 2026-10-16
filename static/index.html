@@ -10,10 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="/static/styles.css">
+  <!-- Universal Relative Stylesheet (Works locally file://, localhost, and Vercel) -->
+  <link rel="stylesheet" href="./static/styles.css">
 
-  <!-- Three.js + Controls -->
+  <!-- Three.js + Controls (CDN with fallback support) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <!-- Lucide Icons -->
@@ -39,6 +39,7 @@
     <ul class="nav-links">
       <li><a href="#hero" class="nav-link">Architecture</a></li>
       <li><a href="#exploded" class="nav-link">Exploded View</a></li>
+      <li><a href="#customizer" class="nav-link">3D Customizer</a></li>
       <li><a href="#tryon" class="nav-link">AR Virtual Try-On</a></li>
       <li><a href="#craft" class="nav-link">Craftsmanship</a></li>
       <li><a href="#specs" class="nav-link">Specifications</a></li>
@@ -70,7 +71,7 @@
           Engineered at the intersection of haute couture and bio-synthetic physics. Featuring an articulated titanium micro-spine, continuous aerogel thermal matrix, and real-time biomechanical telemetry.
         </p>
 
-        <div style="display: flex; gap: 1rem; align-items: center;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
           <a href="#exploded" class="btn-primary">
             <span>Explore 3D Construction</span>
             <i data-lucide="layers"></i>
@@ -239,7 +240,45 @@
   </section>
 
   <!-- ========================================================================
-       SECTION 3: LIVE AR VIRTUAL TRY-ON & BODY SIZING STUDIO
+       SECTION 3: 3D MATERIAL & COLORWAY CUSTOMIZER (FROM ONLINE BEST PRACTICES)
+       ======================================================================== -->
+  <section id="customizer" style="padding-top: 5rem;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="palette" style="width: 14px; height: 14px;"></i>
+        <span>MATERIAL SHADER CUSTOMIZATION</span>
+      </div>
+      <h2 class="section-title">BESPOKE FINISH & ATELIER PALETTE.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Select from laboratory-grade ballistic finishes. Changes reflect immediately on the 3D model.
+      </p>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+      <button class="colorway-btn active" data-color="0x1C1917" data-name="Obsidian Ballistic" style="background: #1C1917; border: 1px solid var(--accent-gold); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #1C1917; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Obsidian Carbon</span>
+      </button>
+
+      <button class="colorway-btn" data-color="0x4B5563" data-name="Titanium Mist" style="background: #1A1A1A; border: 1px solid var(--border-subtle); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #6B7280; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Titanium Mist</span>
+      </button>
+
+      <button class="colorway-btn" data-color="0x7F1D1D" data-name="Imperial Crimson" style="background: #1A1A1A; border: 1px solid var(--border-subtle); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #991B1B; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Imperial Crimson</span>
+      </button>
+
+      <button class="colorway-btn" data-color="0x854D0E" data-name="Sol Gold Weave" style="background: #1A1A1A; border: 1px solid var(--border-subtle); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #CA8A04; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Sol Gold Weave</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 4: LIVE AR VIRTUAL TRY-ON & BODY SIZING STUDIO
        ======================================================================== -->
   <section id="tryon" class="tryon-section">
     <div style="text-align: center; margin-bottom: 3.5rem;">
@@ -285,7 +324,7 @@
           </div>
 
           <div class="toolbar-group font-mono text-gold" style="font-size: 0.72rem;">
-            <span>AI ENGINE: MEDIAPIPE TASKS (OK)</span>
+            <span>AI ENGINE: MEDIAPIPE (ONLINE)</span>
           </div>
         </div>
       </div>
@@ -356,7 +395,7 @@
   </section>
 
   <!-- ========================================================================
-       SECTION 4: SOUND, CLIMATE & MATERIAL CRAFTSMANSHIP
+       SECTION 5: SOUND, CLIMATE & MATERIAL CRAFTSMANSHIP
        ======================================================================== -->
   <section id="craft" style="padding-top: 5rem;">
     <div style="text-align: center; margin-bottom: 3.5rem;">
@@ -426,7 +465,7 @@
   </section>
 
   <!-- ========================================================================
-       SECTION 5: SPECIFICATIONS
+       SECTION 6: SPECIFICATIONS
        ======================================================================== -->
   <section id="specs" style="padding-top: 5rem;">
     <div style="text-align: center; margin-bottom: 3.5rem;">
@@ -475,7 +514,7 @@
   </section>
 
   <!-- ========================================================================
-       SECTION 6: FINAL CTA & BESPOKE ALLOCATION
+       SECTION 7: FINAL CTA & BESPOKE ALLOCATION
        ======================================================================== -->
   <section class="final-cta-section">
     <div class="cta-box">
@@ -563,7 +602,7 @@
     <p>© 2026 AETHER LUXE TECHNOLOGIES. ALL RIGHTS RESERVED. POWERED BY FASTAPI & MEDIAPIPE AI.</p>
   </footer>
 
-  <!-- Main JavaScript Application Engine -->
-  <script src="/static/app.js"></script>
+  <!-- Universal Relative Script Path -->
+  <script src="./static/app.js"></script>
 </body>
 </html>

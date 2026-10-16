@@ -431,12 +431,16 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/")
+@app.get("/index.html")
 async def serve_index():
     """Serves the main luxury 3D interactive web application."""
-    index_path = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"message": "AETHER LUXE Backend running. Building UI..."}
+    root_path = os.path.join(BASE_DIR, "index.html")
+    if os.path.exists(root_path):
+        return FileResponse(root_path)
+    static_path = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(static_path):
+        return FileResponse(static_path)
+    return {"message": "AETHER LUXE Backend running."}
 
 if __name__ == "__main__":
     import uvicorn

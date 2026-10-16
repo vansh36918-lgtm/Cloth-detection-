@@ -1,541 +1,608 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>T-Shirt Background Remover</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHER ONE — The Architecture of Kinetic Luxury</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Universal Relative Stylesheet (Works locally file://, localhost, and Vercel) -->
+  <link rel="stylesheet" href="./static/styles.css">
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            padding: 30px;
-            text-align: center;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-top: 10px;
-        }
-
-        .status-success {
-            background: rgba(76, 175, 80, 0.2);
-            color: #2e7d32;
-            border: 1px solid rgba(76, 175, 80, 0.3);
-        }
-
-        .status-error {
-            background: rgba(244, 67, 54, 0.2);
-            color: #c62828;
-            border: 1px solid rgba(244, 67, 54, 0.3);
-        }
-
-        .main-content {
-            padding: 40px;
-        }
-
-        .upload-section {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .upload-area {
-            border: 3px dashed #ddd;
-            border-radius: 15px;
-            padding: 60px 20px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background: linear-gradient(45deg, #f8f9fa 0%, #e9ecef 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .upload-area:hover {
-            border-color: #4facfe;
-            background: linear-gradient(45deg, #e3f2fd 0%, #bbdefb 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.2);
-        }
-
-        .upload-area.dragover {
-            border-color: #4facfe;
-            background: linear-gradient(45deg, #e3f2fd 0%, #bbdefb 100%);
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 4rem;
-            color: #4facfe;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .upload-area:hover .upload-icon {
-            transform: scale(1.1);
-            color: #2196f3;
-        }
-
-        .upload-text {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .upload-subtext {
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .results-section {
-            display: none;
-            margin-top: 40px;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .result-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-        }
-
-        .result-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-            text-align: center;
-        }
-
-        .image-container {
-            width: 100%;
-            height: 300px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .image-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            transition: all 0.3s ease;
-        }
-
-        .confidence-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(76, 175, 80, 0.9);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4facfe;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #ffebee;
-            color: #c62828;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #f44336;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .success-message {
-            background: #e8f5e8;
-            color: #2e7d32;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #4caf50;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .download-section {
-            text-align: center;
-            margin-top: 30px;
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-
-            .header {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .results-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .upload-area {
-                padding: 40px 20px;
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+  <!-- Three.js + Controls (CDN with fallback support) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
-    <div class="container" data-model-loaded="{{ model_loaded|lower }}" data-error-message="{{ error_message or '' }}">
-        <div class="header">
-            <h1>🎽 T-Shirt Background Remover</h1>
-            <p>Upload your t-shirt image and get it with background removed!</p>
-            <div class="status-indicator status-success" id="modelStatus">
-                ✅ AI Model Loaded Successfully
-            </div>
+
+  <!-- Film Grain Texture -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="#" class="nav-brand">
+      <div class="brand-crest">
+        <i data-lucide="shield"></i>
+      </div>
+      <div>
+        <span class="brand-title">AETHER</span>
+        <span class="brand-subtitle">GENESIS ATELIER</span>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#hero" class="nav-link">Architecture</a></li>
+      <li><a href="#exploded" class="nav-link">Exploded View</a></li>
+      <li><a href="#customizer" class="nav-link">3D Customizer</a></li>
+      <li><a href="#tryon" class="nav-link">AR Virtual Try-On</a></li>
+      <li><a href="#craft" class="nav-link">Craftsmanship</a></li>
+      <li><a href="#specs" class="nav-link">Specifications</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <!-- Ambient Soundscape Button -->
+      <button id="soundscape-btn" class="btn-soundscape" title="Toggle Atmospheric Audio Soundscape" aria-label="Toggle Soundscape">
+        <i data-lucide="volume-2"></i>
+      </button>
+
+      <button class="btn-primary btn-open-reserve">
+        <span>Reserve Allocation</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       SECTION 1: HERO & 3D INTERACTIVE SHOWCASE
+       ======================================================================== -->
+  <section id="hero" class="hero-section">
+    <div class="hero-grid">
+      <!-- Left Column: Cinematic Typography -->
+      <div class="hero-content">
+        <span class="hero-tagline">PROJECT AETHER ONE — LIMITED GENESIS EDITION</span>
+        <h1 class="hero-headline">THE ARCHITECTURE OF KINETIC LUXURY.</h1>
+        <p class="hero-description">
+          Engineered at the intersection of haute couture and bio-synthetic physics. Featuring an articulated titanium micro-spine, continuous aerogel thermal matrix, and real-time biomechanical telemetry.
+        </p>
+
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+          <a href="#exploded" class="btn-primary">
+            <span>Explore 3D Construction</span>
+            <i data-lucide="layers"></i>
+          </a>
+          <a href="#tryon" class="btn-secondary">
+            <span>Launch AR Try-On</span>
+            <i data-lucide="scan"></i>
+          </a>
         </div>
 
-        <div class="main-content">
-            <div class="upload-section">
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📤</div>
-                    <div class="upload-text">Drop your t-shirt image here or click to browse</div>
-                    <div class="upload-subtext">Supported formats: PNG, JPG, JPEG, BMP, TIFF (Max 16MB)</div>
-                </div>
-                <input type="file" id="fileInput" class="file-input" accept="image/*">
-            </div>
-
-            <div class="loading-spinner" id="loadingSpinner">
-                <div class="spinner"></div>
-                <p>Processing your image...</p>
-                <small>Detecting t-shirt and removing background</small>
-            </div>
-
-            <div class="error-message" id="errorMessage"></div>
-            <div class="success-message" id="successMessage"></div>
-
-            <div class="results-section" id="resultsSection">
-                <h2 style="text-align: center; color: #333; margin-bottom: 20px;">Results</h2>
-                <div class="results-grid">
-                    <div class="result-card fade-in">
-                        <h3>Original Image</h3>
-                        <div class="image-container">
-                            <img id="originalImage" alt="Original image">
-                        </div>
-                    </div>
-                    <div class="result-card fade-in">
-                        <h3>Background Removed</h3>
-                        <div class="image-container">
-                            <img id="processedImage" alt="Processed image">
-                            <div class="confidence-badge" id="confidenceBadge"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="download-section" id="downloadSection">
-                    <button class="btn" id="downloadBtn">📥 Download Result</button>
-                </div>
-            </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-value">280 GSM</span>
+            <span class="stat-label">Ballistic Carbon Weave</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">ΔT 14°C</span>
+            <span class="stat-label">Thermal Retention Index</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">420 g</span>
+            <span class="stat-label">Aerogel Core Mass</span>
+          </div>
         </div>
+      </div>
+
+      <!-- Right Column: Interactive Three.js 3D Viewport -->
+      <div class="hero-stage">
+        <!-- Floating HUD Header -->
+        <div class="stage-hud">
+          <div class="stage-badge">
+            <span class="pulse-dot"></span>
+            <span>REAL-TIME 3D SHADER ACTIVE</span>
+          </div>
+          <div class="stage-badge">
+            <i data-lucide="mouse-pointer" style="width: 14px; height: 14px;"></i>
+            <span>DRAG TO ORBIT 360°</span>
+          </div>
+        </div>
+
+        <!-- 3D Canvas -->
+        <canvas id="canvas-3d-stage"></canvas>
+
+        <!-- Floating HUD Controls Bar -->
+        <div class="stage-controls-hud">
+          <button id="btn-toggle-rot" class="hud-btn active">
+            <i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i>
+            <span>Rotation</span>
+          </button>
+          <button id="btn-reset-cam" class="hud-btn">
+            <i data-lucide="focus" style="width: 14px; height: 14px;"></i>
+            <span>Reset Camera</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 2: INTERACTIVE EXPLODED-VIEW ARCHITECTURE (THE GUIDE FEATURE)
+       ======================================================================== -->
+  <section id="exploded" class="exploded-section">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
+        <span>PHYSICAL ENGINEERING & DECONSTRUCTION</span>
+      </div>
+      <h2 class="section-title">THE 5-LAYER EXPLODED ANATOMY.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Hover your cursor over the 3D viewport or scrub the slider below to separate the garment into its internal composite engineering components in real-time space.
+      </p>
     </div>
 
-    <script>
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const resultsSection = document.getElementById('resultsSection');
-        const originalImage = document.getElementById('originalImage');
-        const processedImage = document.getElementById('processedImage');
-        const confidenceBadge = document.getElementById('confidenceBadge');
-        const downloadSection = document.getElementById('downloadSection');
-        const downloadBtn = document.getElementById('downloadBtn');
+    <div class="exploded-container">
+      <!-- Left: Interactive 3D Exploded Viewport -->
+      <div class="exploded-stage-box" id="exploded-stage-box">
+        <div class="stage-hover-hint">
+          <i data-lucide="move" style="width: 14px; height: 14px;"></i>
+          <span>HOVER OVER PRODUCT TO TRIGGER EXPLODED VIEW</span>
+        </div>
 
-        let currentProcessedFilename = null;
-        let currentProcessedImageData = null;
+        <!-- Exploded 3D Canvas -->
+        <canvas id="exploded-canvas"></canvas>
 
-        // Upload area click handler
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
+        <!-- Dynamic Scrubber Bar -->
+        <div class="exploded-scrubber-bar">
+          <span class="scrubber-label">UNIFIED</span>
+          <input type="range" id="exploded-depth-slider" class="exploded-slider" min="0" max="100" value="0">
+          <span class="scrubber-label">100% EXPLODED</span>
+        </div>
+      </div>
 
-        // Drag and drop handlers
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+      <!-- Right: Detailed Layer Inspector Cards -->
+      <div class="layer-inspector">
+        <div>
+          <span class="font-mono text-gold" style="font-size: 0.75rem; letter-spacing: 0.15em;">COMPONENT TELEMETRY</span>
+          <h3 style="font-size: 1.6rem; margin: 0.4rem 0 1rem;">INTEGRATED STRATA</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Click any layer to focus the spatial perspective and view structural material data.
+          </p>
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+          <div class="layer-list">
+            <!-- Layer 1 -->
+            <div class="layer-card active" data-layer-id="1">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 01</span>
+                <span class="layer-tag">BALLISTIC DEFENSE</span>
+              </div>
+              <h4 class="layer-name">Hydrophobic Carbon-Kevlar Shell</h4>
+              <p class="layer-desc">
+                280 GSM woven carbon filament with fluoropolymer nano-coating. Repels rain, abrasions, and zero wind-shear penetration.
+              </p>
+            </div>
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
-        });
+            <!-- Layer 2 -->
+            <div class="layer-card" data-layer-id="2">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 02</span>
+                <span class="layer-tag">CLIMATE MEMBRANE</span>
+              </div>
+              <h4 class="layer-name">Graphene Aerogel Matrix</h4>
+              <p class="layer-desc">
+                Micro-cellular aerogel trapping microscopic thermal pockets. Maintains continuous core temperature from -15°C to +40°C.
+              </p>
+            </div>
 
-        // File input change handler
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
+            <!-- Layer 3 -->
+            <div class="layer-card" data-layer-id="3">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 03</span>
+                <span class="layer-tag">HAPTICS & TELEMETRY</span>
+              </div>
+              <h4 class="layer-name">Bio-Kinetic Sensor Matrix</h4>
+              <p class="layer-desc">
+                64-point flexible conductive bus woven into the chest and spine. Real-time heart rate variability, core heat, and posture analytics.
+              </p>
+            </div>
 
-        // Handle file upload and processing
-        function handleFile(file) {
-            // Validate file type
-            const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/bmp', 'image/tiff'];
-            if (!allowedTypes.includes(file.type)) {
-                showError('Please select a valid image file (PNG, JPG, JPEG, BMP, TIFF)');
-                return;
-            }
+            <!-- Layer 4 -->
+            <div class="layer-card" data-layer-id="4">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 04</span>
+                <span class="layer-tag">KINETIC STRUCTURE</span>
+              </div>
+              <h4 class="layer-name">Articulated Titanium Spine</h4>
+              <p class="layer-desc">
+                Segmented Grade-5 Titanium micro-ribs along the spinal axis, providing dynamic posture stabilization without restricting torque.
+              </p>
+            </div>
 
-            // Validate file size (16MB)
-            if (file.size > 16 * 1024 * 1024) {
-                showError('File size must be less than 16MB');
-                return;
-            }
+            <!-- Layer 5 -->
+            <div class="layer-card" data-layer-id="5">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 05</span>
+                <span class="layer-tag">TACTILE CONTACT</span>
+              </div>
+              <h4 class="layer-name">Mulberry Silk Antimicrobial Lining</h4>
+              <p class="layer-desc">
+                100% Grade 6A Mulberry Silk with antimicrobial silver ions. Zero friction against suiting with effortless gliding drape.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            // Reset UI
-            hideMessages();
-            resultsSection.style.display = 'none';
-            downloadSection.style.display = 'none';
+  <!-- ========================================================================
+       SECTION 3: 3D MATERIAL & COLORWAY CUSTOMIZER (FROM ONLINE BEST PRACTICES)
+       ======================================================================== -->
+  <section id="customizer" style="padding-top: 5rem;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="palette" style="width: 14px; height: 14px;"></i>
+        <span>MATERIAL SHADER CUSTOMIZATION</span>
+      </div>
+      <h2 class="section-title">BESPOKE FINISH & ATELIER PALETTE.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Select from laboratory-grade ballistic finishes. Changes reflect immediately on the 3D model.
+      </p>
+    </div>
 
-            // Show loading
-            loadingSpinner.style.display = 'block';
+    <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+      <button class="colorway-btn active" data-color="0x1C1917" data-name="Obsidian Ballistic" style="background: #1C1917; border: 1px solid var(--accent-gold); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #1C1917; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Obsidian Carbon</span>
+      </button>
 
-            // Create form data
-            const formData = new FormData();
-            formData.append('file', file);
+      <button class="colorway-btn" data-color="0x4B5563" data-name="Titanium Mist" style="background: #1A1A1A; border: 1px solid var(--border-subtle); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #6B7280; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Titanium Mist</span>
+      </button>
 
-            // Upload and process
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                loadingSpinner.style.display = 'none';
-                
-                if (data.success) {
-                    // Show success
-                    showSuccess(`T-shirt detected with ${data.confidence.toFixed(1)}% confidence! Background removed successfully.`);
-                    
-                    // Display images
-                    originalImage.src = data.original_image;
-                    processedImage.src = data.processed_image_b64;
-                    confidenceBadge.textContent = `${data.confidence.toFixed(1)}% confidence`;
-                    
-                    // Store processed image data for download
-                    currentProcessedFilename = data.processed_image;
-                    currentProcessedImageData = data.processed_image_b64;
-                    
-                    // Show results
-                    resultsSection.style.display = 'block';
-                    downloadSection.style.display = 'block';
-                    
-                    // Scroll to results
-                    resultsSection.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    showError(data.error + (data.confidence ? ` (Confidence: ${data.confidence.toFixed(1)}%)` : ''));
-                }
-            })
-            .catch(error => {
-                loadingSpinner.style.display = 'none';
-                showError('Upload failed: ' + error.message);
-            });
-        }
+      <button class="colorway-btn" data-color="0x7F1D1D" data-name="Imperial Crimson" style="background: #1A1A1A; border: 1px solid var(--border-subtle); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #991B1B; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Imperial Crimson</span>
+      </button>
 
-        // Download handler
-        downloadBtn.addEventListener('click', () => {
-            if (currentProcessedImageData) {
-                // Convert base64 to blob and download
-                const base64Data = currentProcessedImageData.split(',')[1];
-                const byteCharacters = atob(base64Data);
-                const byteNumbers = new Array(byteCharacters.length);
-                
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], { type: 'image/png' });
-                
-                // Create download link
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'tshirt_background_removed.png';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-        });
+      <button class="colorway-btn" data-color="0x854D0E" data-name="Sol Gold Weave" style="background: #1A1A1A; border: 1px solid var(--border-subtle); padding: 1rem 1.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; color: #FFF;">
+        <span style="width: 16px; height: 16px; border-radius: 50%; background: #CA8A04; border: 1px solid #FFF;"></span>
+        <span class="font-mono" style="font-size: 0.8rem;">Sol Gold Weave</span>
+      </button>
+    </div>
+  </section>
 
-        // Utility functions
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-        }
+  <!-- ========================================================================
+       SECTION 4: LIVE AR VIRTUAL TRY-ON & BODY SIZING STUDIO
+       ======================================================================== -->
+  <section id="tryon" class="tryon-section">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="scan-face" style="width: 14px; height: 14px;"></i>
+        <span>MEDIAPIPE AI BIOMETRIC CALIBRATION</span>
+      </div>
+      <h2 class="section-title">VIRTUAL AR TRY-ON & BODY SIZING.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Real-time anatomical landmark tracking extracts your millimeter shoulder width, chest circumference, and torso depth to recommend a bespoke tailored fit.
+      </p>
+    </div>
 
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-        }
+    <div class="tryon-workspace">
+      <!-- Left: Interactive AR Viewport -->
+      <div class="tryon-viewport-wrap">
+        <!-- Live Video (Webcam) -->
+        <video id="tryon-video" autoplay playsinline muted></video>
+        <!-- Static Model / Uploaded Image -->
+        <img id="tryon-image" alt="Try-On Subject">
+        <!-- Overlay Canvas for Skeleton & Garment Drape -->
+        <canvas id="tryon-canvas"></canvas>
 
-        function hideMessages() {
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-        }
+        <!-- Initial Placeholder -->
+        <div class="viewport-placeholder" id="viewport-placeholder">
+          <i data-lucide="camera"></i>
+          <p>Select a model preset below or activate your camera for live try-on.</p>
+        </div>
 
-        // Check if model is loaded using data attribute
-        window.addEventListener('load', () => {
-            const container = document.querySelector('.container');
-            const modelLoaded = container.getAttribute('data-model-loaded') === 'true';
-            const modelStatus = document.getElementById('modelStatus');
-            const errorMessage = container.getAttribute('data-error-message');
-            
-            if (!modelLoaded) {
-                // Update status indicator
-                modelStatus.textContent = '❌ AI Model Failed to Load';
-                modelStatus.className = 'status-indicator status-error';
-                
-                // Show specific error message
-                const errorText = errorMessage || 'T-shirt detection model failed to load. Please check if tshirt_model.h5 file exists in the project directory.';
-                showError(errorText);
-                
-                // Disable upload functionality
-                uploadArea.style.opacity = '0.5';
-                uploadArea.style.cursor = 'not-allowed';
-                
-                // Remove event listeners by cloning the element
-                const newUploadArea = uploadArea.cloneNode(true);
-                uploadArea.parentNode.replaceChild(newUploadArea, uploadArea);
-            }
-        });
-    </script>
+        <!-- Viewport Bottom Toolbar -->
+        <div class="viewport-toolbar">
+          <div class="toolbar-group">
+            <button id="btn-start-webcam" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.72rem;">
+              <i data-lucide="camera" style="width: 14px; height: 14px;"></i>
+              <span>Live Webcam Try-On</span>
+            </button>
+
+            <button id="btn-upload-photo" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.72rem;">
+              <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
+              <span>Upload Photo</span>
+            </button>
+            <input type="file" id="upload-photo-input" accept="image/*" style="display: none;">
+          </div>
+
+          <div class="toolbar-group font-mono text-gold" style="font-size: 0.72rem;">
+            <span>AI ENGINE: MEDIAPIPE (ONLINE)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live Telemetry Readout & Size Advisory -->
+      <div class="tryon-telemetry-panel">
+        <div>
+          <span class="font-mono text-gold" style="font-size: 0.75rem; letter-spacing: 0.15em;">BIOMETRIC TELEMETRY HUD</span>
+          <h3 style="font-size: 1.5rem; margin: 0.4rem 0 1rem;">ANATOMICAL METRICS</h3>
+
+          <!-- Sizing Recommendation Box -->
+          <div class="size-recommendation-box">
+            <span class="font-mono" style="font-size: 0.68rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase;">RECOMMENDED FIT</span>
+            <div id="rec-size-badge" class="size-badge">Size 48 / M</div>
+            <div id="rec-fit-desc" class="size-fit-desc">Signature Anatomical Silhouette</div>
+          </div>
+
+          <!-- Measurement Cards -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">Shoulder Width</div>
+              <div>
+                <span id="val-shoulder" class="metric-value">468</span>
+                <span class="metric-unit">MM</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">Chest Breadth</div>
+              <div>
+                <span id="val-chest" class="metric-value">1045</span>
+                <span class="metric-unit">MM</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">Torso Length</div>
+              <div>
+                <span id="val-torso" class="metric-value">685</span>
+                <span class="metric-unit">MM</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">Calibration Trust</div>
+              <div>
+                <span class="metric-value" style="color: #10B981;">98.4</span>
+                <span class="metric-unit">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model Preset Switcher -->
+          <span class="font-mono" style="font-size: 0.68rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase;">QUICK MODEL PRESETS</span>
+          <div class="preset-model-row">
+            <button class="preset-chip active" data-model-index="0">Male Athletic (188cm)</button>
+            <button class="preset-chip" data-model-index="1">Female Tailored (176cm)</button>
+            <button class="preset-chip" data-model-index="2">Avant-Garde (182cm)</button>
+          </div>
+        </div>
+
+        <button class="btn-primary btn-open-reserve" style="width: 100%; justify-content: center; margin-top: 2rem;">
+          <span>Reserve Bespoke Size 48</span>
+          <i data-lucide="check"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 5: SOUND, CLIMATE & MATERIAL CRAFTSMANSHIP
+       ======================================================================== -->
+  <section id="craft" style="padding-top: 5rem;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+        <span>MATERIAL PHYSICS & BIO-ACOUSTICS</span>
+      </div>
+      <h2 class="section-title">THE SILENT FORTRESS.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Engineered with acoustic-dampening micro-chambers that reduce ambient urban frequency noise by up to 18 dB around the collar and hood.
+      </p>
+    </div>
+
+    <div class="craft-grid">
+      <!-- Card 1: Acoustic Shield -->
+      <div class="craft-card">
+        <div class="craft-icon">
+          <i data-lucide="activity"></i>
+        </div>
+        <h3 class="craft-title">Acoustic Deadening Waveform</h3>
+        <p class="craft-desc">
+          High-frequency urban cacophony is diffused through micro-perforated acoustic air pockets, shielding your personal auditory space.
+        </p>
+        <canvas id="waveform-canvas"></canvas>
+      </div>
+
+      <!-- Card 2: Hydrophobic Contact Angle -->
+      <div class="craft-card">
+        <div class="craft-icon">
+          <i data-lucide="droplet"></i>
+        </div>
+        <h3 class="craft-title">98° Hydrophobic Beading</h3>
+        <p class="craft-desc">
+          Water molecules bead into spherical spheres and roll off frictionless, carrying dust and urban particulate away from the fabric surface.
+        </p>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 2px;">
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 0.5rem;">
+            <span>Water Ingress Rating</span>
+            <span class="text-gold">IPX7 / JIS L 1092</span>
+          </div>
+          <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+            <div style="width: 95%; height: 100%; background: var(--accent-gold);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Titanium Micro-Spine -->
+      <div class="craft-card">
+        <div class="craft-icon">
+          <i data-lucide="compass"></i>
+        </div>
+        <h3 class="craft-title">Ergonomic Dynamic Spine</h3>
+        <p class="craft-desc">
+          Laser-sintered Ti-6Al-4V titanium vertebrae distribute weight across the shoulder blades, reducing upper trapezius fatigue by 34%.
+        </p>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 2px;">
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 0.5rem;">
+            <span>Spinal Load Relief</span>
+            <span class="text-gold">-34% Trapezius PSI</span>
+          </div>
+          <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+            <div style="width: 82%; height: 100%; background: #10B981;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 6: SPECIFICATIONS
+       ======================================================================== -->
+  <section id="specs" style="padding-top: 5rem;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+        <span>PRECISION ARCHIVAL DATA</span>
+      </div>
+      <h2 class="section-title">TECHNICAL SPECIFICATIONS.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Every millimeter and gram of AETHER ONE is documented with laboratory testing standards.
+      </p>
+    </div>
+
+    <div class="specs-table-wrap">
+      <div class="spec-row">
+        <div class="spec-key">Outer Shell Composite</div>
+        <div class="spec-val">92% Recycled Ballistic Carbon Filament, 8% Kevlar Aramid</div>
+        <div class="spec-metric">280 GSM</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Thermal Insulation</div>
+        <div class="spec-val">Graphene Oxide Synthesized Nanogel Membrane (ISO 11092)</div>
+        <div class="spec-metric">Ret 3.8 Pa·m²/W</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Structural Skeleton</div>
+        <div class="spec-val">Laser-Cut Grade 5 Titanium Alloy (Ti-6Al-4V) Micro-Spine</div>
+        <div class="spec-metric">120g Spine Mass</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Biometric Sensor SoC</div>
+        <div class="spec-val">64-Channel Printed Copper Bus with Bluetooth Low Energy 5.3</div>
+        <div class="spec-metric">72h Battery (Qi Qi-Charge)</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Hydrostatic Head</div>
+        <div class="spec-val">JIS L 1092 Waterproof Water Column Rating</div>
+        <div class="spec-metric">> 28,000 MM</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Total Garment Weight</div>
+        <div class="spec-val">Engineered lightweight distribution for all-day urban transit</div>
+        <div class="spec-metric">420 Grams (Size 48)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 7: FINAL CTA & BESPOKE ALLOCATION
+       ======================================================================== -->
+  <section class="final-cta-section">
+    <div class="cta-box">
+      <div class="section-badge">
+        <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+        <span>GENESIS ALLOCATION LIMITED TO 500 PIECES</span>
+      </div>
+      <h2>SECURE YOUR STRATUM.</h2>
+      <p>
+        Each garment is hand-crafted to your millimeter biometric dossier in our Milan atelier, laser-etched with your unique Genesis serial identifier.
+      </p>
+      <button class="btn-primary btn-open-reserve" style="font-size: 0.9rem; padding: 1rem 2.5rem;">
+        <span>Reserve Allocation — $2,450 USD</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       BESPOKE RESERVATION MODAL
+       ======================================================================== -->
+  <div id="reservation-modal" class="modal-overlay">
+    <div class="modal-content">
+      <button id="modal-close-btn" class="modal-close" aria-label="Close modal">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="section-badge" style="margin-bottom: 0.8rem;">
+        <span>ALLOCATION DOSSIER</span>
+      </div>
+      <h3 style="font-size: 1.8rem; margin-bottom: 0.5rem;">RESERVE AETHER ONE</h3>
+      <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 2rem;">
+        Limited allocation for Batch 01. Your measurements will be confirmed with our bespoke atelier.
+      </p>
+
+      <form id="reservation-form">
+        <div class="form-group">
+          <label class="form-label" for="res-name">Client Full Name</label>
+          <input type="text" id="res-name" class="form-input" placeholder="e.g. Vansh Jaiswal" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="res-email">Email Address</label>
+          <input type="email" id="res-email" class="form-input" placeholder="e.g. client@atelier.com" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="res-size">Calibrated Size</label>
+            <select id="res-size" class="form-select">
+              <option value="Size 44 / XS">Size 44 / XS</option>
+              <option value="Size 46 / S">Size 46 / S</option>
+              <option value="Size 48 / M" selected>Size 48 / M (Recommended)</option>
+              <option value="Size 50 / L">Size 50 / L</option>
+              <option value="Size 52 / XL">Size 52 / XL</option>
+              <option value="Custom Bespoke Fit">Custom Bespoke Atelier Fit</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="res-colorway">Finish / Colorway</label>
+            <select id="res-colorway" class="form-select">
+              <option value="Obsidian Matte" selected>Obsidian Matte</option>
+              <option value="Titanium Shadow">Titanium Shadow</option>
+              <option value="Cyber Charcoal">Cyber Charcoal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="res-monogram">Custom Titanium Monogram (Optional, Max 4 Characters)</label>
+          <input type="text" id="res-monogram" class="form-input" placeholder="e.g. VJ-01" maxlength="4">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 1rem; margin-top: 1rem;">
+          <span>Confirm Bespoke Reservation</span>
+          <i data-lucide="shield-check"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 AETHER LUXE TECHNOLOGIES. ALL RIGHTS RESERVED. POWERED BY FASTAPI & MEDIAPIPE AI.</p>
+  </footer>
+
+  <!-- Universal Relative Script Path -->
+  <script src="./static/app.js"></script>
 </body>
 </html>
