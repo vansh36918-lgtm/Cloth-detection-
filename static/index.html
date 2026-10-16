@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHER ONE — The Architecture of Kinetic Luxury</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/styles.css">
+
+  <!-- Three.js + Controls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+  <!-- Film Grain Texture -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <a href="#" class="nav-brand">
+      <div class="brand-crest">
+        <i data-lucide="shield"></i>
+      </div>
+      <div>
+        <span class="brand-title">AETHER</span>
+        <span class="brand-subtitle">GENESIS ATELIER</span>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#hero" class="nav-link">Architecture</a></li>
+      <li><a href="#exploded" class="nav-link">Exploded View</a></li>
+      <li><a href="#tryon" class="nav-link">AR Virtual Try-On</a></li>
+      <li><a href="#craft" class="nav-link">Craftsmanship</a></li>
+      <li><a href="#specs" class="nav-link">Specifications</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <!-- Ambient Soundscape Button -->
+      <button id="soundscape-btn" class="btn-soundscape" title="Toggle Atmospheric Audio Soundscape" aria-label="Toggle Soundscape">
+        <i data-lucide="volume-2"></i>
+      </button>
+
+      <button class="btn-primary btn-open-reserve">
+        <span>Reserve Allocation</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       SECTION 1: HERO & 3D INTERACTIVE SHOWCASE
+       ======================================================================== -->
+  <section id="hero" class="hero-section">
+    <div class="hero-grid">
+      <!-- Left Column: Cinematic Typography -->
+      <div class="hero-content">
+        <span class="hero-tagline">PROJECT AETHER ONE — LIMITED GENESIS EDITION</span>
+        <h1 class="hero-headline">THE ARCHITECTURE OF KINETIC LUXURY.</h1>
+        <p class="hero-description">
+          Engineered at the intersection of haute couture and bio-synthetic physics. Featuring an articulated titanium micro-spine, continuous aerogel thermal matrix, and real-time biomechanical telemetry.
+        </p>
+
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <a href="#exploded" class="btn-primary">
+            <span>Explore 3D Construction</span>
+            <i data-lucide="layers"></i>
+          </a>
+          <a href="#tryon" class="btn-secondary">
+            <span>Launch AR Try-On</span>
+            <i data-lucide="scan"></i>
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-value">280 GSM</span>
+            <span class="stat-label">Ballistic Carbon Weave</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">ΔT 14°C</span>
+            <span class="stat-label">Thermal Retention Index</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">420 g</span>
+            <span class="stat-label">Aerogel Core Mass</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Three.js 3D Viewport -->
+      <div class="hero-stage">
+        <!-- Floating HUD Header -->
+        <div class="stage-hud">
+          <div class="stage-badge">
+            <span class="pulse-dot"></span>
+            <span>REAL-TIME 3D SHADER ACTIVE</span>
+          </div>
+          <div class="stage-badge">
+            <i data-lucide="mouse-pointer" style="width: 14px; height: 14px;"></i>
+            <span>DRAG TO ORBIT 360°</span>
+          </div>
+        </div>
+
+        <!-- 3D Canvas -->
+        <canvas id="canvas-3d-stage"></canvas>
+
+        <!-- Floating HUD Controls Bar -->
+        <div class="stage-controls-hud">
+          <button id="btn-toggle-rot" class="hud-btn active">
+            <i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i>
+            <span>Rotation</span>
+          </button>
+          <button id="btn-reset-cam" class="hud-btn">
+            <i data-lucide="focus" style="width: 14px; height: 14px;"></i>
+            <span>Reset Camera</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 2: INTERACTIVE EXPLODED-VIEW ARCHITECTURE (THE GUIDE FEATURE)
+       ======================================================================== -->
+  <section id="exploded" class="exploded-section">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
+        <span>PHYSICAL ENGINEERING & DECONSTRUCTION</span>
+      </div>
+      <h2 class="section-title">THE 5-LAYER EXPLODED ANATOMY.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Hover your cursor over the 3D viewport or scrub the slider below to separate the garment into its internal composite engineering components in real-time space.
+      </p>
+    </div>
+
+    <div class="exploded-container">
+      <!-- Left: Interactive 3D Exploded Viewport -->
+      <div class="exploded-stage-box" id="exploded-stage-box">
+        <div class="stage-hover-hint">
+          <i data-lucide="move" style="width: 14px; height: 14px;"></i>
+          <span>HOVER OVER PRODUCT TO TRIGGER EXPLODED VIEW</span>
+        </div>
+
+        <!-- Exploded 3D Canvas -->
+        <canvas id="exploded-canvas"></canvas>
+
+        <!-- Dynamic Scrubber Bar -->
+        <div class="exploded-scrubber-bar">
+          <span class="scrubber-label">UNIFIED</span>
+          <input type="range" id="exploded-depth-slider" class="exploded-slider" min="0" max="100" value="0">
+          <span class="scrubber-label">100% EXPLODED</span>
+        </div>
+      </div>
+
+      <!-- Right: Detailed Layer Inspector Cards -->
+      <div class="layer-inspector">
+        <div>
+          <span class="font-mono text-gold" style="font-size: 0.75rem; letter-spacing: 0.15em;">COMPONENT TELEMETRY</span>
+          <h3 style="font-size: 1.6rem; margin: 0.4rem 0 1rem;">INTEGRATED STRATA</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Click any layer to focus the spatial perspective and view structural material data.
+          </p>
+
+          <div class="layer-list">
+            <!-- Layer 1 -->
+            <div class="layer-card active" data-layer-id="1">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 01</span>
+                <span class="layer-tag">BALLISTIC DEFENSE</span>
+              </div>
+              <h4 class="layer-name">Hydrophobic Carbon-Kevlar Shell</h4>
+              <p class="layer-desc">
+                280 GSM woven carbon filament with fluoropolymer nano-coating. Repels rain, abrasions, and zero wind-shear penetration.
+              </p>
+            </div>
+
+            <!-- Layer 2 -->
+            <div class="layer-card" data-layer-id="2">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 02</span>
+                <span class="layer-tag">CLIMATE MEMBRANE</span>
+              </div>
+              <h4 class="layer-name">Graphene Aerogel Matrix</h4>
+              <p class="layer-desc">
+                Micro-cellular aerogel trapping microscopic thermal pockets. Maintains continuous core temperature from -15°C to +40°C.
+              </p>
+            </div>
+
+            <!-- Layer 3 -->
+            <div class="layer-card" data-layer-id="3">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 03</span>
+                <span class="layer-tag">HAPTICS & TELEMETRY</span>
+              </div>
+              <h4 class="layer-name">Bio-Kinetic Sensor Matrix</h4>
+              <p class="layer-desc">
+                64-point flexible conductive bus woven into the chest and spine. Real-time heart rate variability, core heat, and posture analytics.
+              </p>
+            </div>
+
+            <!-- Layer 4 -->
+            <div class="layer-card" data-layer-id="4">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 04</span>
+                <span class="layer-tag">KINETIC STRUCTURE</span>
+              </div>
+              <h4 class="layer-name">Articulated Titanium Spine</h4>
+              <p class="layer-desc">
+                Segmented Grade-5 Titanium micro-ribs along the spinal axis, providing dynamic posture stabilization without restricting torque.
+              </p>
+            </div>
+
+            <!-- Layer 5 -->
+            <div class="layer-card" data-layer-id="5">
+              <div class="layer-card-header">
+                <span class="layer-num">STRATUM 05</span>
+                <span class="layer-tag">TACTILE CONTACT</span>
+              </div>
+              <h4 class="layer-name">Mulberry Silk Antimicrobial Lining</h4>
+              <p class="layer-desc">
+                100% Grade 6A Mulberry Silk with antimicrobial silver ions. Zero friction against suiting with effortless gliding drape.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 3: LIVE AR VIRTUAL TRY-ON & BODY SIZING STUDIO
+       ======================================================================== -->
+  <section id="tryon" class="tryon-section">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="scan-face" style="width: 14px; height: 14px;"></i>
+        <span>MEDIAPIPE AI BIOMETRIC CALIBRATION</span>
+      </div>
+      <h2 class="section-title">VIRTUAL AR TRY-ON & BODY SIZING.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Real-time anatomical landmark tracking extracts your millimeter shoulder width, chest circumference, and torso depth to recommend a bespoke tailored fit.
+      </p>
+    </div>
+
+    <div class="tryon-workspace">
+      <!-- Left: Interactive AR Viewport -->
+      <div class="tryon-viewport-wrap">
+        <!-- Live Video (Webcam) -->
+        <video id="tryon-video" autoplay playsinline muted></video>
+        <!-- Static Model / Uploaded Image -->
+        <img id="tryon-image" alt="Try-On Subject">
+        <!-- Overlay Canvas for Skeleton & Garment Drape -->
+        <canvas id="tryon-canvas"></canvas>
+
+        <!-- Initial Placeholder -->
+        <div class="viewport-placeholder" id="viewport-placeholder">
+          <i data-lucide="camera"></i>
+          <p>Select a model preset below or activate your camera for live try-on.</p>
+        </div>
+
+        <!-- Viewport Bottom Toolbar -->
+        <div class="viewport-toolbar">
+          <div class="toolbar-group">
+            <button id="btn-start-webcam" class="btn-primary" style="padding: 0.5rem 1rem; font-size: 0.72rem;">
+              <i data-lucide="camera" style="width: 14px; height: 14px;"></i>
+              <span>Live Webcam Try-On</span>
+            </button>
+
+            <button id="btn-upload-photo" class="btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.72rem;">
+              <i data-lucide="upload" style="width: 14px; height: 14px;"></i>
+              <span>Upload Photo</span>
+            </button>
+            <input type="file" id="upload-photo-input" accept="image/*" style="display: none;">
+          </div>
+
+          <div class="toolbar-group font-mono text-gold" style="font-size: 0.72rem;">
+            <span>AI ENGINE: MEDIAPIPE TASKS (OK)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live Telemetry Readout & Size Advisory -->
+      <div class="tryon-telemetry-panel">
+        <div>
+          <span class="font-mono text-gold" style="font-size: 0.75rem; letter-spacing: 0.15em;">BIOMETRIC TELEMETRY HUD</span>
+          <h3 style="font-size: 1.5rem; margin: 0.4rem 0 1rem;">ANATOMICAL METRICS</h3>
+
+          <!-- Sizing Recommendation Box -->
+          <div class="size-recommendation-box">
+            <span class="font-mono" style="font-size: 0.68rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase;">RECOMMENDED FIT</span>
+            <div id="rec-size-badge" class="size-badge">Size 48 / M</div>
+            <div id="rec-fit-desc" class="size-fit-desc">Signature Anatomical Silhouette</div>
+          </div>
+
+          <!-- Measurement Cards -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">Shoulder Width</div>
+              <div>
+                <span id="val-shoulder" class="metric-value">468</span>
+                <span class="metric-unit">MM</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">Chest Breadth</div>
+              <div>
+                <span id="val-chest" class="metric-value">1045</span>
+                <span class="metric-unit">MM</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">Torso Length</div>
+              <div>
+                <span id="val-torso" class="metric-value">685</span>
+                <span class="metric-unit">MM</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">Calibration Trust</div>
+              <div>
+                <span class="metric-value" style="color: #10B981;">98.4</span>
+                <span class="metric-unit">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model Preset Switcher -->
+          <span class="font-mono" style="font-size: 0.68rem; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase;">QUICK MODEL PRESETS</span>
+          <div class="preset-model-row">
+            <button class="preset-chip active" data-model-index="0">Male Athletic (188cm)</button>
+            <button class="preset-chip" data-model-index="1">Female Tailored (176cm)</button>
+            <button class="preset-chip" data-model-index="2">Avant-Garde (182cm)</button>
+          </div>
+        </div>
+
+        <button class="btn-primary btn-open-reserve" style="width: 100%; justify-content: center; margin-top: 2rem;">
+          <span>Reserve Bespoke Size 48</span>
+          <i data-lucide="check"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 4: SOUND, CLIMATE & MATERIAL CRAFTSMANSHIP
+       ======================================================================== -->
+  <section id="craft" style="padding-top: 5rem;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+        <span>MATERIAL PHYSICS & BIO-ACOUSTICS</span>
+      </div>
+      <h2 class="section-title">THE SILENT FORTRESS.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Engineered with acoustic-dampening micro-chambers that reduce ambient urban frequency noise by up to 18 dB around the collar and hood.
+      </p>
+    </div>
+
+    <div class="craft-grid">
+      <!-- Card 1: Acoustic Shield -->
+      <div class="craft-card">
+        <div class="craft-icon">
+          <i data-lucide="activity"></i>
+        </div>
+        <h3 class="craft-title">Acoustic Deadening Waveform</h3>
+        <p class="craft-desc">
+          High-frequency urban cacophony is diffused through micro-perforated acoustic air pockets, shielding your personal auditory space.
+        </p>
+        <canvas id="waveform-canvas"></canvas>
+      </div>
+
+      <!-- Card 2: Hydrophobic Contact Angle -->
+      <div class="craft-card">
+        <div class="craft-icon">
+          <i data-lucide="droplet"></i>
+        </div>
+        <h3 class="craft-title">98° Hydrophobic Beading</h3>
+        <p class="craft-desc">
+          Water molecules bead into spherical spheres and roll off frictionless, carrying dust and urban particulate away from the fabric surface.
+        </p>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 2px;">
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 0.5rem;">
+            <span>Water Ingress Rating</span>
+            <span class="text-gold">IPX7 / JIS L 1092</span>
+          </div>
+          <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+            <div style="width: 95%; height: 100%; background: var(--accent-gold);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Titanium Micro-Spine -->
+      <div class="craft-card">
+        <div class="craft-icon">
+          <i data-lucide="compass"></i>
+        </div>
+        <h3 class="craft-title">Ergonomic Dynamic Spine</h3>
+        <p class="craft-desc">
+          Laser-sintered Ti-6Al-4V titanium vertebrae distribute weight across the shoulder blades, reducing upper trapezius fatigue by 34%.
+        </p>
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: 2px;">
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; margin-bottom: 0.5rem;">
+            <span>Spinal Load Relief</span>
+            <span class="text-gold">-34% Trapezius PSI</span>
+          </div>
+          <div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+            <div style="width: 82%; height: 100%; background: #10B981;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 5: SPECIFICATIONS
+       ======================================================================== -->
+  <section id="specs" style="padding-top: 5rem;">
+    <div style="text-align: center; margin-bottom: 3.5rem;">
+      <div class="section-badge">
+        <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
+        <span>PRECISION ARCHIVAL DATA</span>
+      </div>
+      <h2 class="section-title">TECHNICAL SPECIFICATIONS.</h2>
+      <p class="section-subtitle" style="margin: 0 auto;">
+        Every millimeter and gram of AETHER ONE is documented with laboratory testing standards.
+      </p>
+    </div>
+
+    <div class="specs-table-wrap">
+      <div class="spec-row">
+        <div class="spec-key">Outer Shell Composite</div>
+        <div class="spec-val">92% Recycled Ballistic Carbon Filament, 8% Kevlar Aramid</div>
+        <div class="spec-metric">280 GSM</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Thermal Insulation</div>
+        <div class="spec-val">Graphene Oxide Synthesized Nanogel Membrane (ISO 11092)</div>
+        <div class="spec-metric">Ret 3.8 Pa·m²/W</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Structural Skeleton</div>
+        <div class="spec-val">Laser-Cut Grade 5 Titanium Alloy (Ti-6Al-4V) Micro-Spine</div>
+        <div class="spec-metric">120g Spine Mass</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Biometric Sensor SoC</div>
+        <div class="spec-val">64-Channel Printed Copper Bus with Bluetooth Low Energy 5.3</div>
+        <div class="spec-metric">72h Battery (Qi Qi-Charge)</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Hydrostatic Head</div>
+        <div class="spec-val">JIS L 1092 Waterproof Water Column Rating</div>
+        <div class="spec-metric">> 28,000 MM</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-key">Total Garment Weight</div>
+        <div class="spec-val">Engineered lightweight distribution for all-day urban transit</div>
+        <div class="spec-metric">420 Grams (Size 48)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       SECTION 6: FINAL CTA & BESPOKE ALLOCATION
+       ======================================================================== -->
+  <section class="final-cta-section">
+    <div class="cta-box">
+      <div class="section-badge">
+        <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+        <span>GENESIS ALLOCATION LIMITED TO 500 PIECES</span>
+      </div>
+      <h2>SECURE YOUR STRATUM.</h2>
+      <p>
+        Each garment is hand-crafted to your millimeter biometric dossier in our Milan atelier, laser-etched with your unique Genesis serial identifier.
+      </p>
+      <button class="btn-primary btn-open-reserve" style="font-size: 0.9rem; padding: 1rem 2.5rem;">
+        <span>Reserve Allocation — $2,450 USD</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       BESPOKE RESERVATION MODAL
+       ======================================================================== -->
+  <div id="reservation-modal" class="modal-overlay">
+    <div class="modal-content">
+      <button id="modal-close-btn" class="modal-close" aria-label="Close modal">
+        <i data-lucide="x"></i>
+      </button>
+
+      <div class="section-badge" style="margin-bottom: 0.8rem;">
+        <span>ALLOCATION DOSSIER</span>
+      </div>
+      <h3 style="font-size: 1.8rem; margin-bottom: 0.5rem;">RESERVE AETHER ONE</h3>
+      <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 2rem;">
+        Limited allocation for Batch 01. Your measurements will be confirmed with our bespoke atelier.
+      </p>
+
+      <form id="reservation-form">
+        <div class="form-group">
+          <label class="form-label" for="res-name">Client Full Name</label>
+          <input type="text" id="res-name" class="form-input" placeholder="e.g. Vansh Jaiswal" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="res-email">Email Address</label>
+          <input type="email" id="res-email" class="form-input" placeholder="e.g. client@atelier.com" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="res-size">Calibrated Size</label>
+            <select id="res-size" class="form-select">
+              <option value="Size 44 / XS">Size 44 / XS</option>
+              <option value="Size 46 / S">Size 46 / S</option>
+              <option value="Size 48 / M" selected>Size 48 / M (Recommended)</option>
+              <option value="Size 50 / L">Size 50 / L</option>
+              <option value="Size 52 / XL">Size 52 / XL</option>
+              <option value="Custom Bespoke Fit">Custom Bespoke Atelier Fit</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="res-colorway">Finish / Colorway</label>
+            <select id="res-colorway" class="form-select">
+              <option value="Obsidian Matte" selected>Obsidian Matte</option>
+              <option value="Titanium Shadow">Titanium Shadow</option>
+              <option value="Cyber Charcoal">Cyber Charcoal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="res-monogram">Custom Titanium Monogram (Optional, Max 4 Characters)</label>
+          <input type="text" id="res-monogram" class="form-input" placeholder="e.g. VJ-01" maxlength="4">
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 1rem; margin-top: 1rem;">
+          <span>Confirm Bespoke Reservation</span>
+          <i data-lucide="shield-check"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 AETHER LUXE TECHNOLOGIES. ALL RIGHTS RESERVED. POWERED BY FASTAPI & MEDIAPIPE AI.</p>
+  </footer>
+
+  <!-- Main JavaScript Application Engine -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
