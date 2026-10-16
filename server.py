@@ -397,6 +397,143 @@ async def get_garment_specs():
         ]
     }
 
+def warp_and_blend_cloth(person_img: np.ndarray, garment_name: str, landmarks_dict: Dict[int, Any]) -> np.ndarray:
+    """Warps and photorealistically blends the 3D garment onto the person's torso."""
+    h, w, _ = person_img.shape
+    garment_file = os.path.join(STATIC_DIR, "garments", f"{garment_name}_coat.png")
+    if not os.path.exists(garment_file):
+        garment_file = os.path.join(STATIC_DIR, "garments", "obsidian_coat.png")
+    
+    garment = cv2.imread(garment_file, cv2.IMREAD_UNCHANGED)
+    if garment is None:
+        return person_img
+
+    # Extract human landmarks
+    ls = landmarks_dict.get(11)
+    rs = landmarks_dict.get(12)
+    lh = landmarks_dict.get(23)
+    rh = landmarks_dict.get(24)
+
+    if ls and rs:
+        lx, ly = ls.x * w, ls.y * h
+        rx, ry = rs.x * w, rs.y * h
+    else:
+        lx, ly = w * 0.32, h * 0.32
+        rx, ry = w * 0.68, h * 0.32
+
+    if lh and rh:
+        lhx, lhy = lh.x * w, lh.y * h
+        rhx, rhy = rh.x * w, rh.y * h
+    else:
+        s_dist = math.hypot(rx - lx, ry - ly)
+        lhx, lhy = lx - s_dist * 0.15, ly + s_dist * 1.5
+        rhx, rhy = rx + s_dist * 0.15, ry + s_dist * 1.5
+
+    s_dist = math.hypot(rx - lx, ry - ly)
+    pad_x = s_dist * 0.18
+    pad_y = s_dist * 0.22
+
+    # Source 4-points on garment template (800x1000)
+    src_pts = np.float32([
+        [160, 220],
+        [640, 220],
+        [640, 890],
+        [160, 890]
+    ])
+
+    # Destination 4-points on body
+    dst_pts = np.float32([
+        [lx - pad_x, ly - pad_y],
+        [rx + pad_x, ry - pad_y],
+        [rhx + pad_x * 0.75, rhy + pad_y * 0.45],
+        [lhx - pad_x * 0.75, lhy + pad_y * 0.45]
+    ])
+
+    # Perspective Transform Matrix
+    matrix = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    warped = cv2.warpPerspective(
+        garment, matrix, (w, h),
+        flags=cv2.INTER_LANCZOS4,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(0, 0, 0, 0)
+    )
+
+    warped_rgb = warped[:, :, :3]
+    alpha = (warped[:, :, 3] / 255.0).astype(np.float32)
+
+    output = person_img.copy().astype(np.float32)
+
+    # 1. Contact Ambient Occlusion Shadow
+    shadow_mask = cv2.GaussianBlur(warped[:, :, 3], (31, 31), 0)
+    shadow_mask = ((shadow_mask / 255.0) * 0.40)[:, :, np.newaxis]
+    output = output * (1.0 - shadow_mask)
+
+    # 2. Ambient Lighting Normalization
+    mask_bool = alpha > 0.3
+    if np.any(mask_bool):
+        body_crop = person_img[int(max(0, ly)):int(min(h, lhy)), int(max(0, min(lx, rx))):int(min(w, max(lx, rx)))]
+        if body_crop.size > 0:
+            ambient_val = np.mean(body_crop)
+            garment_val = np.mean(warped_rgb[mask_bool])
+            ratio = np.clip(ambient_val / (garment_val + 1e-4), 0.75, 1.35)
+            warped_rgb = np.clip(warped_rgb.astype(np.float32) * ratio, 0, 255)
+
+    # 3. Soft Composite Blending
+    alpha_3d = np.repeat(alpha[:, :, np.newaxis], 3, axis=2)
+    output = warped_rgb * alpha_3d + output * (1.0 - alpha_3d)
+    return np.clip(output, 0, 255).astype(np.uint8)
+
+@app.post("/api/v1/tryon/render")
+async def render_virtual_tryon(request: Request):
+    """
+    Renders photorealistic virtual try-on with anatomical perspective warp,
+    ambient occlusion contact shadows, and ambient lighting matching.
+    """
+    try:
+        body = await request.json()
+        image_data = body.get("image")
+        garment_name = body.get("garment", "obsidian").lower()
+        if not image_data:
+            raise HTTPException(status_code=400, detail="Missing 'image' in payload.")
+
+        bgr = decode_image_data(image_data)
+        h, w, _ = bgr.shape
+        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+
+        landmarks_dict = {}
+        if pose_landmarker is not None:
+            import mediapipe as mp
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+            res = pose_landmarker.detect(mp_image)
+            if res.pose_landmarks and len(res.pose_landmarks) > 0:
+                for idx, lm in enumerate(res.pose_landmarks[0]):
+                    landmarks_dict[idx] = lm
+
+        # Fallback if no landmarks detected
+        if not landmarks_dict:
+            landmarks_dict = {
+                11: LandmarkPoint(id=11, name="left_shoulder", x=0.36, y=0.30, z=0.0, visibility=0.9),
+                12: LandmarkPoint(id=12, name="right_shoulder", x=0.64, y=0.30, z=0.0, visibility=0.9),
+                23: LandmarkPoint(id=23, name="left_hip", x=0.38, y=0.68, z=0.0, visibility=0.9),
+                24: LandmarkPoint(id=24, name="right_hip", x=0.62, y=0.68, z=0.0, visibility=0.9)
+            }
+
+        blended_bgr = warp_and_blend_cloth(bgr, garment_name, landmarks_dict)
+        _, buffer = cv2.imencode(".jpg", blended_bgr, [cv2.IMWRITE_JPEG_QUALITY, 92])
+        b64_out = base64.b64encode(buffer).decode("utf-8")
+
+        metrics = compute_body_metrics(landmarks_dict, w, h)
+
+        return {
+            "success": True,
+            "image": f"data:image/jpeg;base64,{b64_out}",
+            "garment": garment_name,
+            "metrics": metrics.dict()
+        }
+    except Exception as e:
+        logger.error(f"Error rendering tryon: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/v1/order/reserve")
 async def create_reservation(reservation: ReservationRequest):
     """Reserve an allocation for AETHER ONE."""
