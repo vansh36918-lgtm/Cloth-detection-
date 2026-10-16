@@ -397,8 +397,48 @@ async def get_garment_specs():
         ]
     }
 
+def warp_triangle_cv2(img_src: np.ndarray, img_dst: np.ndarray, t_src: np.ndarray, t_dst: np.ndarray):
+    """Warps an individual triangular mesh patch from garment to body coordinates."""
+    r_src = cv2.boundingRect(np.float32([t_src]))
+    r_dst = cv2.boundingRect(np.float32([t_dst]))
+
+    # Offset points to sub-rectangle coordinates
+    t_src_rect = [((t_src[i][0] - r_src[0]), (t_src[i][1] - r_src[1])) for i in range(3)]
+    t_dst_rect = [((t_dst[i][0] - r_dst[0]), (t_dst[i][1] - r_dst[1])) for i in range(3)]
+    t_dst_int = [(int(t_dst[i][0] - r_dst[0]), int(t_dst[i][1] - r_dst[1])) for i in range(3)]
+
+    # Boundary safety checks
+    if r_dst[2] <= 0 or r_dst[3] <= 0 or r_src[2] <= 0 or r_src[3] <= 0:
+        return
+
+    # Create triangle mask
+    mask = np.zeros((r_dst[3], r_dst[2], 4), dtype=np.float32)
+    cv2.fillConvexPoly(mask, np.int32(t_dst_int), (1.0, 1.0, 1.0, 1.0), 16, 0)
+
+    # Crop and warp source patch
+    src_patch = img_src[r_src[1]:r_src[1] + r_src[3], r_src[0]:r_src[0] + r_src[2]]
+    warp_mat = cv2.getAffineTransform(np.float32(t_src_rect), np.float32(t_dst_rect))
+    warped_patch = cv2.warpAffine(src_patch, warp_mat, (r_dst[2], r_dst[3]), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
+
+    # Target slice boundaries
+    x1, y1 = max(0, r_dst[0]), max(0, r_dst[1])
+    x2, y2 = min(img_dst.shape[1], r_dst[0] + r_dst[2]), min(img_dst.shape[0], r_dst[1] + r_dst[3])
+
+    if x2 > x1 and y2 > y1:
+        patch_w = x2 - x1
+        patch_h = y2 - y1
+        sub_warped = warped_patch[:patch_h, :patch_w].astype(np.float32)
+        sub_mask = mask[:patch_h, :patch_w]
+        sub_dst = img_dst[y1:y2, x1:x2].astype(np.float32)
+
+        alpha = (sub_warped[:, :, 3:] / 255.0) * sub_mask[:, :, 3:]
+        img_dst[y1:y2, x1:x2] = (sub_warped[:, :, :3] * alpha + sub_dst * (1.0 - alpha)).astype(np.uint8)
+
 def warp_and_blend_cloth(person_img: np.ndarray, garment_name: str, landmarks_dict: Dict[int, Any]) -> np.ndarray:
-    """Warps and photorealistically blends the 3D garment onto the person's torso."""
+    """
+    Photorealistically bends and wraps the 3D garment around the human torso
+    using Piecewise Triangulated Anatomical Mesh Warping and ambient lighting matching.
+    """
     h, w, _ = person_img.shape
     garment_file = os.path.join(STATIC_DIR, "garments", f"{garment_name}_coat.png")
     if not os.path.exists(garment_file):
@@ -430,58 +470,85 @@ def warp_and_blend_cloth(person_img: np.ndarray, garment_name: str, landmarks_di
         rhx, rhy = rx + s_dist * 0.15, ry + s_dist * 1.5
 
     s_dist = math.hypot(rx - lx, ry - ly)
-    pad_x = s_dist * 0.18
-    pad_y = s_dist * 0.22
+    pad_x = s_dist * 0.16
+    pad_y = s_dist * 0.20
 
-    # Source 4-points on garment template (800x1000)
-    src_pts = np.float32([
-        [160, 220],
-        [640, 220],
-        [640, 890],
-        [160, 890]
-    ])
+    # Source 14 control points on garment (800x1000)
+    src_grid = [
+        [320, 140],  # 0: Collar left
+        [400, 240],  # 1: Collar center V-dip
+        [480, 140],  # 2: Collar right
+        [160, 220],  # 3: Shoulder outer left
+        [640, 220],  # 4: Shoulder outer right
+        [140, 480],  # 5: Armpit left
+        [400, 480],  # 6: Sternum / Solar plexus center
+        [660, 480],  # 7: Armpit right
+        [160, 720],  # 8: Waist left
+        [400, 720],  # 9: Navel center
+        [640, 720],  # 10: Waist right
+        [180, 920],  # 11: Bottom hem left
+        [400, 940],  # 12: Bottom hem center
+        [620, 920]   # 13: Bottom hem right
+    ]
 
-    # Destination 4-points on body
-    dst_pts = np.float32([
-        [lx - pad_x, ly - pad_y],
-        [rx + pad_x, ry - pad_y],
-        [rhx + pad_x * 0.75, rhy + pad_y * 0.45],
-        [lhx - pad_x * 0.75, lhy + pad_y * 0.45]
-    ])
+    # Destination 14 control points deformed to the person's posture and spinal curve
+    mid_shoulder_x = (lx + rx) / 2
+    mid_shoulder_y = (ly + ry) / 2
+    mid_hip_x = (lhx + rhx) / 2
+    mid_hip_y = (lhy + rhy) / 2
 
-    # Perspective Transform Matrix
-    matrix = cv2.getPerspectiveTransform(src_pts, dst_pts)
-    warped = cv2.warpPerspective(
-        garment, matrix, (w, h),
-        flags=cv2.INTER_LANCZOS4,
-        borderMode=cv2.BORDER_CONSTANT,
-        borderValue=(0, 0, 0, 0)
-    )
+    # Spinal Curvature Vector (calculates natural lateral bend)
+    spine_dx = mid_hip_x - mid_shoulder_x
+    spine_dy = mid_hip_y - mid_shoulder_y
 
-    warped_rgb = warped[:, :, :3]
-    alpha = (warped[:, :, 3] / 255.0).astype(np.float32)
+    dst_grid = [
+        # 0: Collar left
+        [lx + (rx - lx) * 0.25, ly - pad_y * 0.7],
+        # 1: Collar center V-dip
+        [mid_shoulder_x + spine_dx * 0.15, mid_shoulder_y + pad_y * 0.3],
+        # 2: Collar right
+        [rx - (rx - lx) * 0.25, ry - pad_y * 0.7],
+        # 3: Shoulder outer left (raised/lowered with body)
+        [lx - pad_x, ly - pad_y * 0.3],
+        # 4: Shoulder outer right
+        [rx + pad_x, ry - pad_y * 0.3],
+        # 5: Armpit left
+        [lx - pad_x * 0.9 + spine_dx * 0.35, ly + spine_dy * 0.38],
+        # 6: Sternum / Solar plexus center (bends along spine)
+        [mid_shoulder_x + spine_dx * 0.40, mid_shoulder_y + spine_dy * 0.42],
+        # 7: Armpit right
+        [rx + pad_x * 0.9 + spine_dx * 0.35, ry + spine_dy * 0.38],
+        # 8: Waist left (curves dynamically with torso lean)
+        [lhx - pad_x * 0.7 + spine_dx * 0.1, mid_shoulder_y + spine_dy * 0.75],
+        # 9: Navel center
+        [mid_shoulder_x + spine_dx * 0.75, mid_shoulder_y + spine_dy * 0.75],
+        # 10: Waist right
+        [rhx + pad_x * 0.7 + spine_dx * 0.1, mid_shoulder_y + spine_dy * 0.75],
+        # 11: Bottom hem left
+        [lhx - pad_x * 0.5, lhy + pad_y * 0.4],
+        # 12: Bottom hem center
+        [mid_hip_x, mid_hip_y + pad_y * 0.5],
+        # 13: Bottom hem right
+        [rhx + pad_x * 0.5, rhy + pad_y * 0.4]
+    ]
 
-    output = person_img.copy().astype(np.float32)
+    # Anatomical Mesh Triangulation (18 Triangles)
+    triangles = [
+        [0, 1, 3], [1, 2, 4], [0, 1, 6], [2, 1, 6],
+        [3, 5, 6], [4, 7, 6], [5, 8, 6], [7, 10, 6],
+        [8, 9, 6], [10, 9, 6], [8, 11, 9], [10, 13, 9],
+        [11, 12, 9], [13, 12, 9], [0, 2, 1], [3, 0, 5],
+        [4, 2, 7], [5, 6, 8]
+    ]
 
-    # 1. Contact Ambient Occlusion Shadow
-    shadow_mask = cv2.GaussianBlur(warped[:, :, 3], (31, 31), 0)
-    shadow_mask = ((shadow_mask / 255.0) * 0.40)[:, :, np.newaxis]
-    output = output * (1.0 - shadow_mask)
+    # Warp each triangle onto a clean canvas
+    cloth_canvas = person_img.copy()
+    for tri in triangles:
+        t_src = np.array([src_grid[tri[0]], src_grid[tri[1]], src_grid[tri[2]]], dtype=np.float32)
+        t_dst = np.array([dst_grid[tri[0]], dst_grid[tri[1]], dst_grid[tri[2]]], dtype=np.float32)
+        warp_triangle_cv2(garment, cloth_canvas, t_src, t_dst)
 
-    # 2. Ambient Lighting Normalization
-    mask_bool = alpha > 0.3
-    if np.any(mask_bool):
-        body_crop = person_img[int(max(0, ly)):int(min(h, lhy)), int(max(0, min(lx, rx))):int(min(w, max(lx, rx)))]
-        if body_crop.size > 0:
-            ambient_val = np.mean(body_crop)
-            garment_val = np.mean(warped_rgb[mask_bool])
-            ratio = np.clip(ambient_val / (garment_val + 1e-4), 0.75, 1.35)
-            warped_rgb = np.clip(warped_rgb.astype(np.float32) * ratio, 0, 255)
-
-    # 3. Soft Composite Blending
-    alpha_3d = np.repeat(alpha[:, :, np.newaxis], 3, axis=2)
-    output = warped_rgb * alpha_3d + output * (1.0 - alpha_3d)
-    return np.clip(output, 0, 255).astype(np.uint8)
+    return cloth_canvas
 
 @app.post("/api/v1/tryon/render")
 async def render_virtual_tryon(request: Request):

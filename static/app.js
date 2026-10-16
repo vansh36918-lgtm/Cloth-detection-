@@ -760,58 +760,133 @@
     const shoulderCenterX = (lx + rx) / 2;
     const shoulderCenterY = (ly + ry) / 2;
 
-    // Get current colorway garment asset
+    // Piecewise Triangular Texture Warper
+    function drawTriangleWarp(ctx, img, u0, v0, u1, v1, u2, v2, x0, y0, x1, y1, x2, y2) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.closePath();
+      ctx.clip();
+
+      const delta = u0*(v1 - v2) - u1*v0 + u2*v0 + u1*v2 - u2*v1;
+      if (Math.abs(delta) < 1e-4) {
+        ctx.restore();
+        return;
+      }
+
+      const deltaA = x0*(v1 - v2) - x1*v0 + x2*v0 + x1*v2 - x2*v1;
+      const deltaB = u0*(x1 - x2) - u1*x0 + u2*x0 + u1*x2 - u2*x1;
+      const deltaC = u0*(v1*x2 - v2*x1) - v0*(u1*x2 - u2*x1) + x0*(u1*v2 - u2*v1);
+      const deltaD = y0*(v1 - v2) - y1*v0 + y2*v0 + y1*v2 - y2*v1;
+      const deltaE = u0*(y1 - y2) - u1*y0 + u2*y0 + u1*y2 - u2*y1;
+      const deltaF = u0*(v1*y2 - v2*y1) - v0*(u1*y2 - u2*y1) + y0*(u1*v2 - u2*v1);
+
+      ctx.transform(deltaA/delta, deltaD/delta, deltaB/delta, deltaE/delta, deltaC/delta, deltaF/delta);
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+    }
+
     const garmentImg = GARMENT_IMAGES[state.activeColorway] || GARMENT_IMAGES.obsidian;
 
     if (garmentImg && garmentImg.complete) {
+      // 14 Source Control Points on Garment Texture (800x1000)
+      const srcGrid = [
+        [320, 140],  // 0: Collar left
+        [400, 240],  // 1: Collar V-dip
+        [480, 140],  // 2: Collar right
+        [160, 220],  // 3: Shoulder outer left
+        [640, 220],  // 4: Shoulder outer right
+        [140, 480],  // 5: Armpit left
+        [400, 480],  // 6: Sternum / Solar plexus center
+        [660, 480],  // 7: Armpit right
+        [160, 720],  // 8: Waist left
+        [400, 720],  // 9: Navel center
+        [640, 720],  // 10: Waist right
+        [180, 920],  // 11: Bottom hem left
+        [400, 940],  // 12: Bottom hem center
+        [620, 920]   // 13: Bottom hem right
+      ];
+
+      // Dynamic Curvature Vector along the Spine (Calculates natural lateral bend)
+      const midShoulderX = (lx + rx) / 2;
+      const midShoulderY = (ly + ry) / 2;
+      const midHipX = (lh.x * w + rh.x * w) / 2;
+      const midHipY = (lh.y * h + rh.y * h) / 2;
+      const spineDx = midHipX - midShoulderX;
+      const spineDy = midHipY - midShoulderY;
+      const padX = shoulderWidth * 0.16;
+      const padY = shoulderWidth * 0.20;
+
+      // 14 Destination Points Deformed to the User's Posture & Body Curve
+      const dstGrid = [
+        [lx + (rx - lx) * 0.25, ly - padY * 0.7],                                // 0: Collar left
+        [midShoulderX + spineDx * 0.15, midShoulderY + padY * 0.3],               // 1: Collar V-dip
+        [rx - (rx - lx) * 0.25, ry - padY * 0.7],                                // 2: Collar right
+        [lx - padX, ly - padY * 0.3],                                            // 3: Shoulder outer left
+        [rx + padX, ry - padY * 0.3],                                            // 4: Shoulder outer right
+        [lx - padX * 0.9 + spineDx * 0.35, ly + spineDy * 0.38],                 // 5: Armpit left
+        [midShoulderX + spineDx * 0.40, midShoulderY + spineDy * 0.42],           // 6: Sternum center (bends along spine)
+        [rx + padX * 0.9 + spineDx * 0.35, ry + spineDy * 0.38],                 // 7: Armpit right
+        [lh.x * w - padX * 0.7 + spineDx * 0.1, midShoulderY + spineDy * 0.75],  // 8: Waist left (bends with hips)
+        [midShoulderX + spineDx * 0.75, midShoulderY + spineDy * 0.75],           // 9: Navel center
+        [rh.x * w + padX * 0.7 + spineDx * 0.1, midShoulderY + spineDy * 0.75],  // 10: Waist right (bends with hips)
+        [lh.x * w - padX * 0.5, lh.y * h + padY * 0.4],                          // 11: Bottom hem left
+        [midHipX, midHipY + padY * 0.5],                                         // 12: Bottom hem center
+        [rh.x * w + padX * 0.5, rh.y * h + padY * 0.4]                           // 13: Bottom hem right
+      ];
+
+      // 18 Mesh Triangles defining anatomical garment topology
+      const triangles = [
+        [0, 1, 3], [1, 2, 4], [0, 1, 6], [2, 1, 6],
+        [3, 5, 6], [4, 7, 6], [5, 8, 6], [7, 10, 6],
+        [8, 9, 6], [10, 9, 6], [8, 11, 9], [10, 13, 9],
+        [11, 12, 9], [13, 12, 9], [0, 2, 1], [3, 0, 5],
+        [4, 2, 7], [5, 6, 8]
+      ];
+
       ctx.save();
 
-      // 1. Natural Contact Ambient Occlusion Shadow
+      // 1. Soft Contact Ambient Occlusion Drop-Shadow
       ctx.save();
-      ctx.translate(shoulderCenterX, shoulderCenterY + 12);
-      ctx.rotate(shoulderAngle);
       ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-      ctx.shadowBlur = 24;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 8;
-
-      const drapeW = shoulderWidth * 1.58;
-      const drapeH = drapeW * (1000 / 800) * 1.05;
-
-      // Draw invisible shadow caster
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.01)';
-      ctx.fillRect(-drapeW / 2, -drapeH * 0.22, drapeW, drapeH);
+      ctx.shadowBlur = 28;
+      ctx.shadowOffsetY = 10;
+      ctx.beginPath();
+      ctx.moveTo(dstGrid[3][0], dstGrid[3][1]);
+      ctx.lineTo(dstGrid[4][0], dstGrid[4][1]);
+      ctx.lineTo(dstGrid[13][0], dstGrid[13][1]);
+      ctx.lineTo(dstGrid[11][0], dstGrid[11][1]);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0,0,0,0.01)';
+      ctx.fill();
       ctx.restore();
 
-      // 2. Realistic Garment Placement & Perspective Warp
-      ctx.save();
-      ctx.translate(shoulderCenterX, shoulderCenterY);
-      ctx.rotate(shoulderAngle);
+      // 2. High-Performance Piecewise Triangle Mesh Deformation (Cloth Bending)
+      ctx.globalAlpha = 0.98;
+      triangles.forEach((tri) => {
+        const p0 = srcGrid[tri[0]], p1 = srcGrid[tri[1]], p2 = srcGrid[tri[2]];
+        const d0 = dstGrid[tri[0]], d1 = dstGrid[tri[1]], d2 = dstGrid[tri[2]];
+        drawTriangleWarp(
+          ctx, garmentImg,
+          p0[0], p0[1], p1[0], p1[1], p2[0], p2[1],
+          d0[0], d0[1], d1[0], d1[1], d2[0], d2[1]
+        );
+      });
 
-      // Natural soft lighting & subtle fabric drape blend
-      ctx.globalAlpha = 0.96;
-      ctx.drawImage(
-        garmentImg,
-        -drapeW / 2,
-        -drapeH * 0.22,
-        drapeW,
-        drapeH
-      );
-      ctx.restore();
-
-      // 3. Subtle Holographic Fit Pin Accents
+      // 3. Subtle Anatomical Telemetry Crosshairs
       ctx.strokeStyle = '#CA8A04';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([3, 3]);
 
-      // Collar Anchor Indicator
       ctx.beginPath();
-      ctx.arc(shoulderCenterX, shoulderCenterY - 10, 4, 0, Math.PI * 2);
+      ctx.arc(midShoulderX, midShoulderY, 4, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.fillStyle = '#CA8A04';
       ctx.font = '10px "JetBrains Mono", monospace';
-      ctx.fillText(`ATELIER FIT: ${metrics.recommended_size}`, shoulderCenterX - 55, shoulderCenterY - 22);
+      ctx.fillText(`ANATOMICAL MESH FIT: ${metrics.recommended_size}`, midShoulderX - 65, midShoulderY - 18);
 
       ctx.restore();
     }
